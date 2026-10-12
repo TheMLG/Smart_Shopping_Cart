@@ -153,6 +153,15 @@ export const updatePaymentStatus = asyncHandler(async (req, res) => {
 
   await order.save();
 
+  // Completing payment starts a new shopping session for the same cart.
+  // Reset both fields so carts previously marked as checked out can be reused.
+  if (paymentStatus === 'completed') {
+    await Cart.findOneAndUpdate(
+      { cartId: order.cartId },
+      { $set: { items: [], totalAmount: 0, status: 'active' } }
+    );
+  }
+
   res.status(200).json(
     new ApiResponse(200, order, 'Payment status updated successfully')
   );

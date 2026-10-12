@@ -160,6 +160,7 @@ export const clearCart = asyncHandler(async (req, res) => {
 
   cart.items = [];
   cart.totalAmount = 0;
+  cart.status = 'active';
   await cart.save();
 
   res.status(200).json(

@@ -82,6 +82,33 @@ const OrderConfirmation = () => {
     }
   };
 
+  const handleReturnToCart = async () => {
+    if (!order?.cartId) {
+      navigate("/");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/api/cart/${order.cartId}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Failed to reset cart");
+      }
+
+      navigate(`/cart/${order.cartId}`);
+    } catch (err) {
+      console.error("Error resetting cart before returning:", err);
+      toast({
+        variant: "destructive",
+        title: "Unable to reset cart",
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    }
+  };
+
   useEffect(() => {
     if (!orderId) {
       setError("No order ID provided");
@@ -308,7 +335,7 @@ const OrderConfirmation = () => {
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => navigate(order.cartId ? `/cart/${order.cartId}` : "/")}
+            onClick={handleReturnToCart}
           >
             <Home className="h-4 w-4 mr-2" />
             Return to Cart
