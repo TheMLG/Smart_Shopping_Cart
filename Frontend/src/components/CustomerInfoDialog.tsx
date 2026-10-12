@@ -82,7 +82,7 @@ const CustomerInfoDialog = ({
         <DialogHeader>
           <DialogTitle className="text-xl">Customer Details</DialogTitle>
           <DialogDescription>
-            Please enter your contact information to proceed to payment.
+            Please enter your contact information to view the bill summary.
           </DialogDescription>
         </DialogHeader>
 
@@ -171,7 +171,7 @@ const CustomerInfoDialog = ({
                 Processing...
               </span>
             ) : (
-              "Proceed to Pay"
+              "Proceed to Payout"
             )}
           </Button>
         </DialogFooter>

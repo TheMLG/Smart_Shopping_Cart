@@ -51,7 +51,7 @@ const paymentInfoSchema = new mongoose.Schema(
   {
     method: {
       type: String,
-      enum: ["cash", "card", "upi", "netbanking", "wallet", "razorpay"],
+      enum: ["cash", "card", "upi", "netbanking", "wallet"],
       required: true,
     },
     status: {
@@ -60,15 +60,6 @@ const paymentInfoSchema = new mongoose.Schema(
       default: "pending",
     },
     transactionId: {
-      type: String,
-    },
-    razorpayOrderId: {
-      type: String,
-    },
-    razorpayPaymentId: {
-      type: String,
-    },
-    razorpaySignature: {
       type: String,
     },
   },

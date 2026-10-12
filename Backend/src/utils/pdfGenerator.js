@@ -91,7 +91,7 @@ export const generateBillPDF = (order, stream) => {
          .text(order.customerInfo.phone, ML, y, { width: PW / 2 - 10, lineBreak: false });
 
       // Transaction / payment ID
-      const txnId = order.paymentInfo.transactionId || order.paymentInfo.razorpayPaymentId;
+      const txnId = order.paymentInfo.transactionId;
       if (txnId) {
         doc.fillColor(MEDIUM).fontSize(9).font('Helvetica')
            .text(`Txn ID: ${txnId}`, ML + PW / 2, y, { width: PW / 2, lineBreak: false });

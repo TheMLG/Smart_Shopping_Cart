@@ -175,7 +175,7 @@ const OrderConfirmation = () => {
                 <div className="text-right">
                   <div className="flex items-center gap-1.5 justify-end mb-1">
                     <CheckCircle2 className="h-4 w-4" />
-                    <span className="text-sm font-semibold">Payment Confirmed</span>
+                    <span className="text-sm font-semibold">Bill Summary</span>
                   </div>
                   <p className="text-xs opacity-80">
                     {new Date(order.createdAt).toLocaleString("en-IN", {
@@ -194,7 +194,7 @@ const OrderConfirmation = () => {
                   <p className="font-mono font-semibold">{order.orderId}</p>
                 </div>
                 <div>
-                  <span className="opacity-70">Payment</span>
+                  <span className="opacity-70">Payment Method</span>
                   <p className="capitalize font-medium">
                     {order.paymentInfo.method} •{" "}
                     <span className="bg-white/20 rounded px-1">{order.paymentInfo.status}</span>

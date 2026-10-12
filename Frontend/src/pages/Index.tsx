@@ -91,10 +91,10 @@ const Index = () => {
             });
           }
 
-          // Detect when cart was emptied after checkout/payment
+          // Detect when cart was emptied after checkout
           if (isPolling && previousItemsCountRef.current > 0 && transformedItems.length === 0) {
             toast({
-              title: "Payment Successful!",
+              title: "Order Placed",
               description: "Your order has been placed and the cart has been cleared.",
             });
           }

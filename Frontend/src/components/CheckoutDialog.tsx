@@ -29,13 +29,6 @@ export interface CustomerInfo {
   phone: string;
 }
 
-// Razorpay type declaration
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
-
 const CheckoutDialog = ({ 
   open, 
   onOpenChange, 
@@ -101,7 +94,7 @@ const CheckoutDialog = ({
         <DialogHeader className="px-5 pt-5 pb-4 sm:px-6 sm:pt-6">
           <DialogTitle>Checkout</DialogTitle>
           <DialogDescription>
-            Review your order and enter your details to proceed with payment.
+            Review your order and enter your details to view the bill summary.
           </DialogDescription>
         </DialogHeader>
         
@@ -227,7 +220,7 @@ const CheckoutDialog = ({
             disabled={isLoading}
             className="flex-1 sm:flex-none min-w-[120px]"
           >
-            {isLoading ? "Processing..." : "Pay Now"}
+            {isLoading ? "Processing..." : "Proceed to Payout"}
           </Button>
         </DialogFooter>
       </DialogContent>
