@@ -47,8 +47,10 @@ export const createOrder = asyncHandler(async (req, res) => {
     status: 'pending',
   });
 
-  // Update cart status to checked out
-  cart.status = 'checkedout';
+  // Reset the cart after the order is created so it is ready for the next customer.
+  cart.items = [];
+  cart.totalAmount = 0;
+  cart.status = 'active';
   await cart.save();
 
   res.status(201).json(
@@ -211,4 +213,3 @@ export const downloadBillPDF = asyncHandler(async (req, res) => {
   // Generate PDF and pipe to response
   await generateBillPDF(order, res);
 });
-
