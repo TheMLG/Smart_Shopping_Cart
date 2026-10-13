@@ -45,23 +45,22 @@ export const handleNFCScan = asyncHandler(async (req, res) => {
 
   console.log('✅ Product found:', { productId: product.productId, name: product.name, price: product.price, stock: product.stock, nfcTagId: product.nfcTagId });
 
-  // Check if product is in stock
-  if (product.stock <= 0) {
-    console.log('❌ Product out of stock');
-    throw new ApiError(400, 'Product is out of stock');
-  }
-
   // Check if product already exists in cart
   const existingItemIndex = cart.items.findIndex(
     (item) => item.productId === product.productId
   );
 
   if (existingItemIndex > -1) {
-    // Product exists, increment quantity
-    const oldQuantity = cart.items[existingItemIndex].quantity;
-    cart.items[existingItemIndex].quantity += 1;
-    console.log('📦 Updated existing item quantity:', { productId: product.productId, oldQuantity, newQuantity: cart.items[existingItemIndex].quantity });
+    // A second scan toggles the product out of the cart.
+    cart.items.splice(existingItemIndex, 1);
+    console.log('🗑️ Removed existing item from cart:', { productId: product.productId });
   } else {
+    // Stock is only required when adding a new product.
+    if (product.stock <= 0) {
+      console.log('❌ Product out of stock');
+      throw new ApiError(400, 'Product is out of stock');
+    }
+
     // Add new product to cart
     cart.items.push({
       productId: product.productId,
@@ -103,7 +102,9 @@ export const handleNFCScan = asyncHandler(async (req, res) => {
     new ApiResponse(
       200,
       responseData,
-      'Product added to cart successfully'
+      existingItemIndex > -1
+        ? 'Product removed from cart successfully'
+        : 'Product added to cart successfully'
     )
   );
 });
