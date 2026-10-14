@@ -1,10 +1,58 @@
 import Order from '../models/Order.model.js';
 import Cart from '../models/Cart.model.js';
+import Product from '../models/Product.model.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import { generateBillPDF } from '../utils/pdfGenerator.js';
 import { TAX_RATE } from '../utils/constants.js';
+
+const restoreProductStock = async (items) => {
+  for (const item of items) {
+    await Product.findOneAndUpdate(
+      { productId: item.productId },
+      { $inc: { stock: item.quantity } }
+    );
+  }
+};
+
+const reserveProductStock = async (items) => {
+  const reservedItems = [];
+
+  try {
+    for (const item of items) {
+      if (!item?.productId || !item?.quantity || item.quantity <= 0) {
+        throw new ApiError(400, 'Invalid order item in cart');
+      }
+
+      const updatedProduct = await Product.findOneAndUpdate(
+        { productId: item.productId, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity } },
+        { new: true }
+      );
+
+      if (!updatedProduct) {
+        throw new ApiError(
+          400,
+          `Insufficient stock for product ${item.name || item.productId}`
+        );
+      }
+
+      reservedItems.push({
+        productId: item.productId,
+        quantity: item.quantity,
+      });
+    }
+
+    return reservedItems;
+  } catch (error) {
+    if (reservedItems.length > 0) {
+      await restoreProductStock(reservedItems);
+    }
+
+    throw error;
+  }
+};
 
 // Create order from cart
 export const createOrder = asyncHandler(async (req, res) => {
@@ -25,37 +73,53 @@ export const createOrder = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Cannot create order from empty cart');
   }
 
-  // Generate unique order ID
-  const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+  let reservedItems = [];
+  let createdOrder = null;
 
-  // Calculate subtotal, tax, and total
-  const subtotal = cart.totalAmount; // Cart stores subtotal
-  const tax = subtotal * TAX_RATE;
-  const totalAmount = subtotal + tax;
+  try {
+    reservedItems = await reserveProductStock(cart.items);
 
-  // Create order
-  const order = await Order.create({
-    orderId,
-    cartId,
-    items: cart.items,
-    subtotal,
-    tax,
-    totalAmount,
-    customerInfo,
-    paymentInfo,
-    notes: notes || '',
-    status: 'pending',
-  });
+    // Generate unique order ID
+    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-  // Reset the cart after the order is created so it is ready for the next customer.
-  cart.items = [];
-  cart.totalAmount = 0;
-  cart.status = 'active';
-  await cart.save();
+    // Calculate subtotal, tax, and total
+    const subtotal = cart.totalAmount; // Cart stores subtotal
+    const tax = subtotal * TAX_RATE;
+    const totalAmount = subtotal + tax;
 
-  res.status(201).json(
-    new ApiResponse(201, order, 'Order created successfully')
-  );
+    // Create order
+    createdOrder = await Order.create({
+      orderId,
+      cartId,
+      items: cart.items,
+      subtotal,
+      tax,
+      totalAmount,
+      customerInfo,
+      paymentInfo,
+      notes: notes || '',
+      status: 'pending',
+    });
+
+    // Reset the cart after the order is created so it is ready for the next customer.
+    cart.items = [];
+    cart.totalAmount = 0;
+    cart.status = 'active';
+    await cart.save();
+
+    res.status(201).json(
+      new ApiResponse(201, createdOrder, 'Order created successfully')
+    );
+  } catch (error) {
+    if (createdOrder?._id) {
+      await Order.findByIdAndDelete(createdOrder._id);
+    }
+
+    if (reservedItems.length > 0) {
+      await restoreProductStock(reservedItems);
+    }
+    throw error;
+  }
 });
 
 // Get order by orderId
